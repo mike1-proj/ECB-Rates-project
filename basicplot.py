@@ -8,6 +8,8 @@ import numpy as np
 
 df = pd.read_csv('data.csv')  # we read data from a csv file into a DF for plotting later
 
+df2 = df['Maxpulse']  # focus on just one column of values for the plot
+
 
 def on_closing():
     root.quit()
@@ -30,9 +32,13 @@ canvas = FigureCanvasTkAgg(fig, master=root)
 canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
 # Plot data on Matplotlib Figure
-ax.plot(df)
+ax.plot(df2)
 canvas.draw()
 
+# Create Toolbar
+toolbar = NavigationToolbar2Tk(canvas, root, pack_toolbar=False)
+toolbar.update()
+toolbar.pack(side=tk.BOTTOM, fill=tk.X)
 
 root.protocol("WM_DELETE_WINDOW", on_closing)  # introduced to close reluctant tkinter window
 root.mainloop()
