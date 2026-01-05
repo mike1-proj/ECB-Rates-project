@@ -1,3 +1,6 @@
+""" this is a complete GPB to Euro exchange Script with a Tkinter interface to pick to and from dates 
+and an API which pulls down data in the csv format from ECB which is converted to a Pandas 
+DF format for use in a Mathplot lib Function to plot the data."""
 import tkinter as tk
 from tkcalendar import Calendar
 from datetime import datetime
