@@ -1,33 +1,33 @@
 """ This is a Tkinter project for currency rates checking. It uses a Tkinter format interface using frames to separate each area for date picking, showing values and graphing them.
  the buttons functions call functions for running an API which pulls down data from Frankfurter API source.
- It is also able to use tree view to display the values returned as well as a mathplot lib graph view.
+ It is also able to use tree view to display the values returned as well as a Matplotlib graph view.
  It can handle both sterling to Euro and Euro to Sterling. A possible future upgrade might include a small currency
- value calculator based on the currency  amount and using one of the daily values"""
-# Import the library tkinter
+ value calculator based on the currency  amount and using one of the daily values. We are using tkinter grid manager
+ protocols in this version to arrange all the various objects inside separate frames and  this allows for much  easier
+ placing and separation of our widgets that we need. Finally, a code change on line 16 was introduced to make Matplotlib
+ use TkAgg instead of randomly selecting another backend such as QTAgg. QTAgg has some incompatible components such as
+ pyside2 and shiboken2 which are incompatible with the latest NumPy 2.4.4 version loaded in this project's packages"""
+
 from tkinter import *
 from tkinter import ttk
 from tkcalendar import Calendar
 from datetime import datetime
 import requests
 import pandas as pd
-import io
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import (
-    FigureCanvasTkAgg)
-from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
-import numpy as np
 import matplotlib.dates as mdates
 
-"""We are using tkinter grid manager protocols in this version to arrange all the various objects inside
- separate frames and  this allows for much  easier placing and separation of our widgets that we need"""
-
-# now to put in a few pre set-ups for pyplot and global start values
+# now to put in a few pre-set variables for pyplot and global start values
+#-------------------------------------Globals/Variables-------------------------------------------------------------
 
 start_date = None
 end_date = None
 
-# Now we construct the Tkinter window which  includes a plot window
+# Now we construct the Tkinter window which includes a plot window
 # There are two primary interfaces for plotting with Matplotlib the first  is  the pyplot approach using "Matplotlib"
 # internal pyplot module. The second is the object-oriented style, you explicitly create Figure and Axes objects and
 # then call methods on the resulting objects.
