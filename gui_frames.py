@@ -40,7 +40,7 @@ end_date = None
 
 # we need to add something before creating the Tk object to stop PyCharm warning about unrecognised attributes.
 # this is because I initially started with intention of using a pandas Dataframe but PyCharm was unhappy when I named
-# variables app.df and add.data.
+# variables app.df and app.data.
 # So we wrap the Tk gui code inside a clean, object-oriented subclass and name the non-standard attributes there.
 
 # 1. Define a custom subclass inheriting from Tk
@@ -54,6 +54,7 @@ class FileApp(Tk):
         # 2. Pre-declare our DataFrame and Data attributes here
         self.df: pd.DataFrame | None = None
         self.data: dict | None = None
+        self.graph_title: str = ""
 
 # 2. Now we can initialise our app in the normal way using the new class
 app = FileApp()
@@ -119,6 +120,8 @@ def load_euro_data():
     app.data = euro_gbp()  # list dictionaries
     app.df = pd.DataFrame(app.data)  #optional DataFrame
 
+    app.graph_title = "Euro to GBP Exchange Rates"
+
     populate_treeview()
 
 
@@ -140,6 +143,8 @@ def gbp_euro():
 def load_gbp_data():
     app.data = gbp_euro()  # list dictionaries
     app.df = pd.DataFrame(app.data)  # optional DataFrame
+
+    app.graph_title = "GBP to Euro Exchange Rates"
 
     populate_treeview()
 
@@ -231,7 +236,7 @@ def plot_from_treeview():  # this function populates the treeview data onto the 
     # ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d")) # year,month date option
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%d-%b"))  # month (by name) and date option
 
-    ax.set_title("Exchange Rates")
+    ax.set_title(app.graph_title)
     ax.set_xlabel("Date")
     ax.set_ylabel("Rate")
 
@@ -315,7 +320,7 @@ tree = ttk.Treeview(data_frame, show='headings')
 tree.pack(fill="both", expand=True)
 
 
-# Complete the loop code line for displaying app but also include some code to make sure mathplot lib closes
+# Complete the loop code line for displaying app but also include some code to make sure Matplotlib closes
 def on_closing():
     plt.close('all')  # Kills all open Matplotlib figures
     app.quit()  # Stops the Tkinter mainloop
