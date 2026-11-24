@@ -1,12 +1,14 @@
-""" This is a Tkinter project for currency rates checking. It uses a Tkinter format interface using frames to separate each area for date picking, showing values and graphing them.
- the buttons functions call functions for running an API which pulls down data from Frankfurter API source.
- It is also able to use tree view to display the values returned as well as a Matplotlib graph view.
- It can handle both sterling to Euro and Euro to Sterling. A possible future upgrade might include a small currency
- value calculator based on the currency  amount and using one of the daily values. We are using tkinter grid manager
- protocols in this version to arrange all the various objects inside separate frames and  this allows for much  easier
- placing and separation of our widgets that we need. Finally, a code change on line 16 was introduced to make Matplotlib
- use TkAgg instead of randomly selecting another backend such as QTAgg. QTAgg has some incompatible components such as
- pyside2 and shiboken2 which are incompatible with the latest NumPy 2.4.4 version loaded in this project's packages"""
+""" This is a Tkinter project for currency rates checking.
+It uses a Tkinter format interface using frames to separate each area for date picking, showing values and graphing.
+We are using tkinter grid manager protocols in this version to arrange all the various objects inside separate frames
+and this allows for much  easier placing and separation of our widgets that we need.
+The button functions call functions for running an API which pulls down data from Frankfurter API source.
+It is also able to use tree view to display the values returned as well as a Matplotlib graph view.
+It can handle both sterling to Euro and Euro to Sterling. This version includes a small currency
+value calculator based on the currency amount entered and using one of the daily values.
+Finally, a code change on line 16 was introduced to make Matplotlib
+use TkAgg instead of randomly selecting another backend such as QTAgg. QTAgg has some incompatible components such as
+pyside2 and shiboken2 which are incompatible with the latest NumPy 2.4.4 version loaded in this project's packages"""
 
 from tkinter import *
 from tkinter import ttk
@@ -26,8 +28,8 @@ import matplotlib.dates as mdates
 
 start_date = None
 end_date = None
-
-# Now we construct the Tkinter window which includes a plot window
+fig, ax = plt.subplots() # now declare the plot variable
+# We will later construct the Tkinter window which includes a plot window
 # There are two primary interfaces for plotting with Matplotlib the first  is  the pyplot approach using "Matplotlib"
 # internal pyplot module. The second is the object-oriented style, you explicitly create Figure and Axes objects and
 # then call methods on the resulting objects.
@@ -38,9 +40,8 @@ end_date = None
 
 # -----------------------------------Create a GUI app ----------------------------------------------------
 
-# we need to add something before creating the Tk object to stop PyCharm warning about unrecognised attributes.
-# this is because I initially started with intention of using a pandas Dataframe but PyCharm was unhappy when I named
-# variables app.df and app.data.
+# The code used here caused PyCharm warning about unrecognised attributes. This is because I initially started with
+# intention of using a pandas Dataframe but PyCharm was unhappy when I named variables app.df and app.data.
 # So we wrap the Tk gui code inside a clean, object-oriented subclass and name the non-standard attributes there.
 
 # 1. Define a custom subclass inheriting from Tk
@@ -49,36 +50,30 @@ class FileApp(Tk):
     def __init__(self):
         super().__init__()
 
-        self.title(" STG to Euro /Euro to STG ") # this is to change the default inherited Tk title to something else
+        self.title(" STG to Euro /Euro to STG by MMcN Ver 1.0.0.0 ") # Change the default "Tk" title to something else
 
         # 2. Pre-declare our DataFrame and Data attributes here
         self.df: pd.DataFrame | None = None
         self.data: dict | None = None
         self.graph_title: str = ""
 
-# 2. Now we can initialise our app in the normal way using the new class
+# 2. Now we can initialise our app in the normal way using the new class.
 app = FileApp()
-app.geometry("850x550")
-# This ensures the window can grow to fill the space in the frame even  if it is stretched later
+app.geometry("850x700")
+# This ensures the window can grow to fill the space in the frame even  if it is stretched later.
 app.grid_columnconfigure(1, weight=1)
 app.grid_rowconfigure(0, weight=1)
-# This ensures the window can grow, but never shrink smaller than your base frame
+# This ensures the window can grow, but never shrink smaller than your base frame.
 app.minsize(500, 700)
 
-# Now PyCharm knows these exist inside the TK gui and will not flag errors
-app.df = pd.DataFrame({"Col1": [1, 2]})
-app.data = {"status": "ready"}
-
-# ----------------------------"varables/globals"-------------------------------------------------------------------
-
-# now declare the plot variable
-fig, ax = plt.subplots()
-
-#  I started out with the aim of using a pandas data frame approach but later realised I could also use a simple
-#  dictionary format for use in treeview later. So, I need to set up the variable app.data = NONE which will
-# hold the value returned from the API query for optional use later in export and analysis.
-# # I have included app.df in the variable set up as I later changed the key function further along
+app.df = pd.DataFrame({"Col1": [1, 2]}) # placeholder variable for use in future pandas data frame
+app.data = {"key": "value"} # placeholder variable for use in a treeview dictionary later.
+# Now PyCharm knows these 2 exist inside a placeholder dictionary called app.data and will not flag errors in the code
+# to follow. I started out with the aim of using a pandas data frame approach but later realised I could also use a
+# simple dictionary format for use in treeview later.
+# I have included app.df in the variable set up as I later changed the key function further along
 # so it can work for either format.
+
 
 # ----------------------------------Functions------------------------------------------------------------
 
@@ -115,13 +110,15 @@ def euro_gbp():
 
 # now I need a wrapper function to call the euro_gbp function in button 2 and store the resulting data frame created
 # from that function. Later on in this code, we allocate this wrapper function to the button2 command.
-# note I have modified this to include for either a pandas format or a simple list dictionary.
+# we also clear the calculator window ready for a calculation with the new rates obtained.
 def load_euro_data():
     app.data = euro_gbp()  # list dictionaries
     app.df = pd.DataFrame(app.data)  #optional DataFrame
 
     app.graph_title = "Euro to GBP Exchange Rates"
-
+    amount_label.config(text="Amount in EUR:")
+    result_label.config(text="Result in GBP:")
+    clear_calculator()
     populate_treeview()
 
 
@@ -139,13 +136,15 @@ def gbp_euro():
 # this gave us a variable called "data" with the downloaded json contents as requested inside
 
 # next a wrapper function to call the gbp_euro function in from button 1 and store the resulting data frame created.
-# Later on in this code, we allocate this wrapper function to the button 1 command.
+# we also clear the calculator window ready for a calculation with the new rates obtained.
 def load_gbp_data():
     app.data = gbp_euro()  # list dictionaries
     app.df = pd.DataFrame(app.data)  # optional DataFrame
 
     app.graph_title = "GBP to Euro Exchange Rates"
-
+    amount_label.config(text="Amount in GBP:")
+    result_label.config(text="Result in EUR:")
+    clear_calculator()
     populate_treeview()
 
 
@@ -168,7 +167,7 @@ def populate_treeview():
     tree.heading("rate", text="GBP")
 
     # insert data
-    for row in app.data:
+    for row in reversed (app.data): # sort the data rows by latest first (reverse to how they are in the actual app.data
         tree.insert(
             "",
             "end",
@@ -236,7 +235,7 @@ def plot_from_treeview():  # this function populates the treeview data onto the 
     # ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y-%m-%d")) # year,month date option
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%d-%b"))  # month (by name) and date option
 
-    ax.set_title(app.graph_title)
+    ax.set_title(app.graph_title) # changes graph title to reflect currency conversion requested on graph
     ax.set_xlabel("Date")
     ax.set_ylabel("Rate")
 
@@ -244,17 +243,65 @@ def plot_from_treeview():  # this function populates the treeview data onto the 
     # Refresh display
     canvas.draw()
 
+# Calculator functions for exchange rate display
 
-# now we create the calendar widgets and also the functions for picking start and end dates and set up the minimum
+def get_selected_rate(): # pick rate to use from tree view
+
+    selected_item = tree.selection()
+
+    if not selected_item:
+        return None
+
+    row_data = tree.item(selected_item[0])["values"]
+
+    rate = float(row_data[1])
+
+    return rate
+
+def display_result(message):
+    result_entry.config(state="normal")
+    result_entry.delete(0, END)
+    result_entry.insert(0, message)
+    result_entry.config(state="readonly")
+
+def clear_calculator():
+    amount_entry.delete(0, END)
+    display_result("")
+
+def calculate_amount(): # calculation to take chosen rate from tree view and display result
+
+    rate = get_selected_rate()
+
+    if rate is None:
+        display_result("Please select a rate first")
+        return
+
+    amount = amount_entry.get()
+
+    try:
+        amount = float(amount)
+    except ValueError:
+        display_result("Enter a valid amount")
+        return
+
+    converted = amount * rate
+
+    result_entry.config(state="normal")
+    result_entry.delete(0, END)
+    result_entry.insert(0, f"{converted:.2f}")
+    result_entry.config(state="readonly")
+
+#-------------------------------------------------------- GUI----------------------------------------------------------
+# now we create the calendar widgets and also the process for picking start and end dates and set up the minimum
 # start dates visible in the calendar picker view before we select actual dates for the search.
 # We keep all the calendars and query buttons in a side frame isolated from the plot window in another frame.
 
 
 # 1. THE SIDEBAR Frame(Column 0)
 sidebar_frame = Frame(app)
-sidebar_frame.grid(row=0, column=0, rowspan=2, sticky="ns")  # "ns" makes it full height
+sidebar_frame.grid(row=0, column=0, rowspan=3, sticky="ns")  # "ns" makes it full height
 
-# Now add all the widgets INSIDE the sidebar_frame
+# Now add all the widgets INSIDE the sidebar_frame-----------------------------------------------------------------
 # Notice they all start at row 0, 1, 2... INSIDE this frame
 
 # Start date calendar buildup  process
@@ -279,15 +326,56 @@ cal2.bind("<<CalendarSelected>>", update_label2)
 label2 = Label(sidebar_frame, text="")  # we create a label space to show the selected date but leave it empty for now
 label2.grid(pady=5, row=5)
 
+ttk.Label(
+    sidebar_frame,
+    text="CURRENCY CALCULATOR"
+).grid(row=10, column=0, pady=(5, 5))
+
+amount_label = ttk.Label(
+    sidebar_frame,
+    text="Amount to convert:"
+)
+amount_label.grid(row=11, column=0, pady=5)
+
+amount_entry = ttk.Entry(
+    sidebar_frame,
+    width=15
+)
+
+amount_entry.grid(row=12, column=0, pady=5)
+
+result_label = ttk.Label(
+    sidebar_frame,
+    text="Converted amount:"
+)
+result_label.grid(row=15, column=0, pady=(10, 5))
+
+result_entry = ttk.Entry(
+    sidebar_frame,
+    width=20,
+    state="readonly"
+)
+
+result_entry.grid(row=16, column=0, pady=5)
+
+explanation_frame = Frame(app, height=60)
+explanation_frame.grid(row=2, column=1, rowspan=1, sticky="ew")  # "ns" makes it full height
+Label(explanation_frame, text="To calculate conversion pick an exchange rate from tree view above first").grid(
+    row=0, column=0, padx=50, pady=5)
+
+# ---------------------------------------------------Buttons------------------------------------------------------
+
 # create the two buttons required under the calendars in column 0 of the sidebar frame
 
 btn1 = ttk.Button(sidebar_frame, text="Get GBR to Euro Rates", command=load_gbp_data)  # we create a button to trigger
 # the rates request using the load_gbp_data wrapper function which calls the main gbp_euro function and returns values
 btn2 = ttk.Button(sidebar_frame, text="Get Euro to GBR Rates", command=load_euro_data)  # we create a button to trigger
 # the rates request using the load_euro_data wrapper function which calls the main euro_gbh function and returns values.
+btn3 = ttk.Button(sidebar_frame, text="Calculate", command=calculate_amount)
 
 btn1.grid(row=6, column=0, rowspan=2, pady=5)
 btn2.grid(row=8, column=0, rowspan=2, pady=5)
+btn3.grid(row=13, column=0, rowspan=2, pady=5)
 
 # 2. THE GRAPH Frame(Column 1)
 # Now lets move on to create the graph display which will be in a separate frame row 0 but column 1
@@ -319,6 +407,7 @@ app.rowconfigure(1, weight=1)  # Data gets less space
 tree = ttk.Treeview(data_frame, show='headings')
 tree.pack(fill="both", expand=True)
 
+#------------------------------------------ closer section ----------------------------------------------------
 
 # Complete the loop code line for displaying app but also include some code to make sure Matplotlib closes
 def on_closing():
